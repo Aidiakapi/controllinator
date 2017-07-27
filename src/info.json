@@ -1,0 +1,11 @@
+{
+    "name": "controllinator",
+    "version": "0.1.0",
+    "title": "Controllinator (alpha)",
+    "author": "Aidiakapi",
+    "contact": "aidiakapi@gmail.com",
+    "homepage": "",
+    "factorio_version": "0.15",
+    "dependencies": ["base >= 0.15.30"],
+    "description": "Adds tools to debug combinator setups like pausing, stepping and breakpoints."
+}
