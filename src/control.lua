@@ -38,7 +38,6 @@ script.on_init(function ()
         global.contraptions[force.name] = {
             make_metatable({}, contraption)
         }
-        
     end
 
     -- Instantiate the objects
@@ -101,6 +100,17 @@ script.on_event(defines.events.on_pre_surface_deleted, function (event)
     end
 end)
 
+script.on_event(defines.events.on_player_cursor_stack_changed, function (event)
+    global.interfaces[event.player_index]:on_player_cursor_stack_changed()
+end)
+
+script.on_event(defines.events.on_player_selected_area, function (event)
+    global.interfaces[event.player_index]:on_player_selected_area(false, event.item, event.entities)
+end)
+script.on_event(defines.events.on_player_alt_selected_area, function (event)
+    global.interfaces[event.player_index]:on_player_selected_area(true, event.item, event.entities)
+end)
+
 script.on_event(defines.events.on_tick, function (event)
     for force, contraption in iter_contraptions() do
         contraption:on_tick()
@@ -152,6 +162,10 @@ end)
 
 -- Stop a player's debug session when a player leaves a multiplayer game
 script.on_event(defines.events.on_player_left_game, function (event)
-    local interface = global.interfaces[event.player_index]
+    local player = game.players[event.player_index]
+    local interface = global.interfaces[player.index]
     if interface:get_debug_session() then interface:on_gui_debug_toggle() end
+    if player.cursor_stack.valid_for_read and player.cursor_stack.name == 'combinator-select-tool' then
+        player.cursor_stack.clear()
+    end
 end)

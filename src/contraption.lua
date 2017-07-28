@@ -86,7 +86,7 @@ function contraption:new(force, contraption_type, name, opt_region)
     -- TODO: Support the other types of contraptions
     type_check('table', force)
     type_check('string', name)
-    param_assert(contraption_type == 'all', [[contraption_type must be 'all']])
+    param_assert(contraption_type == 'all' or contraption_type == 'custom', [[contraption_type must be 'all' or 'custom']])
 
     self.force, self.contraption_type, self.name = force, contraption_type, name
     self.entities = {}
@@ -129,7 +129,7 @@ function contraption:on_tick()
             self:scan_chunk(s, x, y)
 
             if #xs == 0 then
-                print(('chunks scanned for force %s, entities found: %d'):format(self.force.name, #self.entities))
+                print(('[controllinator] chunks scanned for force %s, entities found: %d'):format(self.force.name, #self.entities))
                 break
             end
         end
@@ -159,6 +159,16 @@ function contraption:on_pre_surface_destroyed(surface)
     end
 end
 
+function contraption:try_add_entity(entity)
+    if not is_combinator(entity) then return end
+    add_entity_to_contraption(self, entity)
+end
+
+function contraption:try_remove_entity(entity)
+    if not is_combinator(entity) then return end
+    remove_entity_from_contraption(self, entity)
+end
+
 function contraption:on_entity_created(entity, opt_player)
     type_check('table', entity)
     param_assert(entity.force == self.force, 'entity must belong to the same force as the contraption')
@@ -167,6 +177,16 @@ function contraption:on_entity_created(entity, opt_player)
 
     if self.contraption_type == 'all' then
         add_entity_to_contraption(self, entity)
+    elseif self.contraption_type == 'custom' then
+        -- Add it automatically to the contraption if the player
+        -- placing it is also currently debugging this specific
+        -- custom contraption.
+        if opt_player and global.interfaces[opt_player.index] then
+            local debug_session = global.interfaces[opt_player.index]:get_debug_session()
+            if debug_session.contraption == self then
+                add_entity_to_contraption(self, entity)
+            end
+        end
     end
 end
 
@@ -176,9 +196,7 @@ function contraption:on_entity_destroyed(entity, opt_player)
 
     if not is_combinator(entity) then return end
 
-    if self.contraption_type == 'all' then
-        remove_entity_from_contraption(self, entity)
-    end
+    remove_entity_from_contraption(self, entity)
 end
 
 return contraption
