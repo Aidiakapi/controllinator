@@ -202,6 +202,13 @@ script.on_event(defines.events.on_player_left_game, function (event)
     end
 end)
 
+script.on_event(defines.events.on_runtime_mod_setting_changed, function (event)
+    if event.setting ~= 'controllinator_show_icon' then
+        return
+    end
+    global.interfaces[event.player_index]:update_top_gui()
+end)
+
 commands.add_command('controllinator_update_gui', 'Debug utility. Forces the gui to be updated for all players.', function ()
     for _, player in pairs(game.players) do
         global.interfaces[player.index]:update_gui()

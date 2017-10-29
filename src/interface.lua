@@ -16,7 +16,7 @@ local interface = {}
 local function get_contraptions(self)
     local contraptions =  global.contraptions[self.player.force.name]
     if not contraptions then
-        print('[controllinator] warning: global.contraptions was not created for force ' .. self.player.force.name)
+        log('[controllinator] warning: global.contraptions was not created for force ' .. self.player.force.name)
         contraptions = {}
         global.contraptions[self.player.force.name] = contraptions
     end
@@ -28,7 +28,7 @@ function interface:new(player)
 
     self.buttons = {}
     self.active_contraption = (get_contraptions(self) or {})[1]
-    self:create_top_gui()
+    self:update_top_gui()
 end
 
 function interface:destroy()
@@ -106,6 +106,15 @@ function interface:new_debug_session()
     self:update_gui()
 end
 
+function interface:update_top_gui()
+    local should_show = settings.get_player_settings(self.player).controllinator_show_icon.value
+    local is_shown = not not self.buttons.main_toggle
+    log(('should: %s  is: %s'):format(should_show, is_shown))
+    if should_show == is_shown then return end
+    if should_show then self:create_top_gui()
+    else self:destroy_top_gui() end
+end
+
 function interface:create_top_gui()
     if self.buttons.main_toggle then return end
 
@@ -124,11 +133,10 @@ end
 
 function interface:destroy_top_gui()
     if not self.buttons.main_toggle then return end
-    if not self.buttons.main_toggle.valid then
-        self.buttons.main_toggle = nil
-        return
+    if self.buttons.main_toggle.valid then
+        self.buttons.main_toggle.destroy()
     end
-    self.buttons.main_toggle.destroy()
+    self.buttons.main_toggle = nil
 end
 
 function interface:create_main_gui()
