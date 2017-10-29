@@ -66,6 +66,29 @@ script.on_load(function ()
     end
 end)
 
+script.on_event(defines.events.on_force_created, function (event)
+    local force = event.force
+    local contraption = make_metatable({}, contraption)
+    global.contraptions[force.name] = {
+        contraption
+    }
+    contraption:new(force, 'all', 'ALL')
+end)
+
+script.on_event(defines.events.on_forces_merging, function (event)
+    local force = event.source
+    global.contraptions[force.name] = {}
+end)
+
+script.on_event(defines.events.on_player_changed_force, function (event)
+    local player = game.players[event.player_index]
+    global.interfaces[player.index]:destroy()
+    global.interfaces[player.index] = nil
+
+    global.interfaces[player.index] = make_metatable({}, interface)
+    global.interfaces[player.index]:new(player)
+end)
+
 script.on_event(defines.events.on_player_created, function (event)
     local player = game.players[event.player_index]
     global.interfaces[player.index] = make_metatable({}, interface)
@@ -159,6 +182,15 @@ end)
 script.on_event('controllinator_debug_step', function (event)
     global.interfaces[event.player_index]:on_gui_debug_step()
 end)
+script.on_event('controllinator_toggle_gui', function (event)
+    global.interfaces[event.player_index]:toggle_main_gui()
+end)
+script.on_event('controllinator_toggle_edit', function (event)
+    global.interfaces[event.player_index]:toggle_edit()
+end)
+script.on_event('controllinator_toggle_new', function (event)
+    global.interfaces[event.player_index]:toggle_new_gui()
+end)
 
 -- Stop a player's debug session when a player leaves a multiplayer game
 script.on_event(defines.events.on_player_left_game, function (event)
@@ -167,5 +199,11 @@ script.on_event(defines.events.on_player_left_game, function (event)
     if interface:get_debug_session() then interface:on_gui_debug_toggle() end
     if player.cursor_stack.valid_for_read and player.cursor_stack.name == 'combinator-select-tool' then
         player.cursor_stack.clear()
+    end
+end)
+
+commands.add_command('controllinator_update_gui', 'Debug utility. Forces the gui to be updated for all players.', function ()
+    for _, player in pairs(game.players) do
+        global.interfaces[player.index]:update_gui()
     end
 end)

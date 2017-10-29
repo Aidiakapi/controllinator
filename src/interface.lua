@@ -37,9 +37,11 @@ function interface:destroy()
         self:destroy_top_gui()
         self:destroy_main_gui()
     end
+    
+    self:destroy_debug_session()
 
     for k, v in pairs(self) do
-        self[k] = nil
+        rawset(self, k, nil)
     end
 end
 
@@ -69,8 +71,43 @@ function interface:get_debug_session()
     end
 end
 
+function interface:destroy_debug_session()
+    local index
+    local player = self.player
+    for i, debug_session in ipairs(global.debug_sessions) do
+        if debug_session.player == player then
+            index = i
+            break
+        end
+    end
+    if index == nil then return end
+    global.debug_sessions[index]:destroy()
+    table.remove(global.debug_sessions, index)
+    self:update_gui()
+end
+
+function interface:new_debug_session()
+    local contraption = self.active_contraption
+    local overlap = false
+    for _, entity in ipairs(contraption.entities) do
+        if global.controlled_entities[entity.unit_number] then
+            overlap = true
+            break
+        end
+    end
+
+    if overlap then
+        self:print('Cannot start debug session, because some entities are already being debugged (ask some other player?)')
+        return
+    end
+    debug_session = make_metatable({}, debug_session_functions)
+    global.debug_sessions[#global.debug_sessions + 1] = debug_session
+    debug_session:new(self.player, contraption)
+    self:update_gui()
+end
+
 function interface:create_top_gui()
-    if self.buttons.main_toggle then self:destroy_top_gui() end
+    if self.buttons.main_toggle then return end
 
     -- Create GUI button
     local toggle_button = self.player.gui.top.add({
@@ -95,7 +132,7 @@ function interface:destroy_top_gui()
 end
 
 function interface:create_main_gui()
-    if self.main_interface then self:destroy_main_gui() end
+    if self.main_interface then return end
 
     local main = {}
     self.main_interface = main
@@ -215,7 +252,7 @@ end
 function interface:create_new_gui()
     local main = self.main_interface
     assert(main, 'cannot create new_contrap_ui without main_interface')
-    if main.new_contrap_ui then self:destroy_new_gui() end
+    if main.new_contrap_ui then return end
 
     local new_contrap_ui = {}
     main.new_contrap_ui = new_contrap_ui
@@ -256,6 +293,22 @@ function interface:destroy_new_gui()
 
     main.new_contrap_ui = nil
     self:update_gui()
+end
+
+function interface:toggle_new_gui()
+    local debug_session = self:get_debug_session()
+    
+    if debug_session then
+        self:print('cannot create a new contraption while debugging')
+        return
+    end
+    if self.is_editing then
+        self:print('cannot create a new contraption while editing')
+        return
+    end
+    self:create_main_gui()
+    if self.main_interface.new_contrap_ui then self:destroy_new_gui()
+    else self:create_new_gui() end
 end
 
 function interface:on_gui_click(element, button, alt, control, shift)
@@ -305,36 +358,10 @@ function interface:on_gui_debug_toggle()
     local debug_session = self:get_debug_session()
 
     if debug_session then
-        local index
-        for i, v in ipairs(global.debug_sessions) do
-            if v == debug_session then
-                index = i
-                break
-            end
-        end
-        assert(index)
-        debug_session:destroy()
-        table.remove(global.debug_sessions, index)
+        self:destroy_debug_session()
     else
-        local contraption = self.active_contraption
-        local overlap = false
-        for _, entity in ipairs(contraption.entities) do
-            if global.controlled_entities[entity.unit_number] then
-                overlap = true
-                break
-            end
-        end
-
-        if overlap then
-            self:print('Cannot start debug session, because some entities are already being debugged (ask some other player?)')
-            return
-        end
-        debug_session = make_metatable({}, debug_session_functions)
-        global.debug_sessions[#global.debug_sessions + 1] = debug_session
-        debug_session:new(self.player, contraption)
+        self:new_debug_session()
     end
-
-    self:update_gui()
 end
 
 function interface:on_gui_debug_pause()
@@ -413,6 +440,14 @@ function interface:on_player_cursor_stack_changed()
     end
     self.is_editing = false
     self:update_gui()
+end
+
+function interface:toggle_edit()
+    if not self.active_contraption or self.active_contraption.contraption_type == 'all' then
+        self:print('cannot edit the selected contraption')
+        return
+    end
+    self:on_gui_edit_contraption()
 end
 
 function interface:on_gui_edit_contraption()
@@ -613,7 +648,8 @@ function interface:update_gui()
 
     local new_contrap_ui = main.new_contrap_ui
     main.debug_toggle.enabled = not new_contrap_ui
-    if not new_contrap_ui then
+    if new_contrap_ui then
+        main.edit_contraption.enabled = false
         return
     end
 end

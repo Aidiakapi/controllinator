@@ -183,7 +183,7 @@ function contraption:on_entity_created(entity, opt_player)
         -- custom contraption.
         if opt_player and global.interfaces[opt_player.index] then
             local debug_session = global.interfaces[opt_player.index]:get_debug_session()
-            if debug_session.contraption == self then
+            if debug_session ~= nil and debug_session.contraption == self then
                 add_entity_to_contraption(self, entity)
             end
         end
