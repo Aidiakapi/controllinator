@@ -100,6 +100,28 @@ function contraption:new(force, contraption_type, name, opt_region)
     end
 end
 
+function contraption:rescan_all_chunks()
+    if self.contraption_type == 'all' then
+        self.entities = {}
+        self.pending_chunks = { x = {}, y = {}, surface = {} }
+
+        for _, surface in pairs(game.surfaces) do
+            self:on_surface_created(surface)
+        end
+    end
+end
+
+function contraption:check_entities()
+    local old_entities, new_entities = self.entities, {}
+    self.entities = new_entities
+    for _, entity in ipairs(old_entities) do
+        if entity and entity.valid then
+            new_entities[#new_entities + 1] = entity
+        end
+    end
+    return #old_entities - #new_entities
+end
+
 function contraption:scan_chunk(surface, chunk_x, chunk_y)
     type_check('table', surface)
     type_check('number', chunk_x)
@@ -152,9 +174,19 @@ end
 function contraption:on_pre_surface_destroyed(surface)
     local old_entities, new_entities = self.entities, {}
     self.entities = new_entities
-    for _, entity in old_entities do
+    for _, entity in ipairs(old_entities) do
         if entity.surface ~= surface then
             new_entities[#new_entities + 1] = entity
+        end
+    end
+
+    if self.contraption_type ~= 'all' or #self.pending_chunks.x == 0 then return end
+    local xs, ys, ss = self.pending_chunks.x, self.pending_chunks.y, self.pending_chunks.surface
+    for i = #xs, 1, -1 do
+        if ss[i] == surface then
+            table.remove(xs, i)
+            table.remove(ys, i)
+            table.remove(ss, i)
         end
     end
 end

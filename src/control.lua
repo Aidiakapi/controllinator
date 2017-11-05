@@ -110,14 +110,16 @@ script.on_event(defines.events.on_gui_selection_state_changed, function (event)
 end)
 
 script.on_event(defines.events.on_surface_created, function (event)
-    local surface = game.surfaces[event.surface_index]
+    local surface = game.surfaces[event.surface_index + 1]
+    log('[controllinator] creating surface: ' .. surface.name)
     for force, contraption in iter_contraptions() do
         contraption:on_surface_created(surface)
     end
 end)
 
 script.on_event(defines.events.on_pre_surface_deleted, function (event)
-    local surface = game.surfaces[event.surface_index]
+    local surface = game.surfaces[event.surface_index + 1]
+    log('[controllinator] destroying surface: ' .. surface.name)
     for force, contraption in iter_contraptions() do
         contraption:on_pre_surface_destroyed(surface)
     end
@@ -134,19 +136,40 @@ script.on_event(defines.events.on_player_alt_selected_area, function (event)
     global.interfaces[event.player_index]:on_player_selected_area(true, event.item, event.entities)
 end)
 
+local function tick_debug_sessions()
+    for _, debug_session in ipairs(global.debug_sessions) do
+        debug_session:on_tick()
+    end
+end
+local function tick_debug_sessions_error(err)
+    local remove_count = 0
+    for _, contraption in iter_contraptions() do
+        remove_count = remove_count + contraption:check_entities()
+    end
+
+    if remove_count > 0 then
+        local message = ('[controllinator] invalid entities detected, did a mod/script incorrectly destoy some entities?'):format(remove_count)
+        for _, player in pairs(game.players) do
+            player.print(message)
+        end
+    end
+end
+
 script.on_event(defines.events.on_tick, function (event)
     for force, contraption in iter_contraptions() do
         contraption:on_tick()
     end
 
-    for _, debug_session in ipairs(global.debug_sessions) do
-        debug_session:on_tick()
+    local _, obj = xpcall(tick_debug_sessions, tick_debug_sessions_error)
+    if obj and obj.tag == tick_debug_sessions_error_tag then
+        error(obj.err)
     end
 end)
 
 do
     local function on_entity_built(event)
         local entity = event.created_entity
+        if not entity then return end
         local force = entity.force
         local player = event.player_index and game.players[event.player_index] or nil
         local contraptions = global.contraptions[force.name] or {}
@@ -157,10 +180,12 @@ do
 
     script.on_event(defines.events.on_built_entity, on_entity_built)
     script.on_event(defines.events.on_robot_built_entity, on_entity_built)
+    script.on_event(defines.events.script_raised_built, on_entity_built)
 end
 do
     local function on_entity_destroyed(event)
         local entity = event.entity
+        if not entity then return end
         local force = entity.force
         local player = event.player_index and game.players[event.player_index] or nil
         local contraptions = global.contraptions[force.name] or {}
@@ -171,6 +196,7 @@ do
 
     script.on_event(defines.events.on_player_mined_entity, on_entity_destroyed)
     script.on_event(defines.events.on_robot_mined_entity, on_entity_destroyed)
+    script.on_event(defines.events.script_raised_destroy, on_entity_built)
 end
 
 script.on_event('controllinator_debug_toggle', function (event)
@@ -207,6 +233,15 @@ script.on_event(defines.events.on_runtime_mod_setting_changed, function (event)
         return
     end
     global.interfaces[event.player_index]:update_top_gui()
+end)
+
+commands.add_command('controllinator_rescan_all_chunks', 'Rescans all chunks for combinators. Use this if for some reason not all combinators are being paused.', function ()
+    for _, player in pairs(game.players) do
+        player.print('[controllinator] rescanning started, will finish in the background')
+    end
+    for force, contraption in iter_contraptions() do
+        contraption:rescan_all_chunks()
+    end
 end)
 
 commands.add_command('controllinator_update_gui', 'Debug utility. Forces the gui to be updated for all players.', function ()

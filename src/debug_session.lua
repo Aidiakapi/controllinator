@@ -75,7 +75,6 @@ end
 
 function debug_session:on_tick()
     if not self.paused or self.step_next then
-        self.step_next = false
         for _, entity in ipairs(self.contraption.entities) do
             entity.energy = entity.electric_buffer_size
         end
@@ -84,6 +83,7 @@ function debug_session:on_tick()
             entity.energy = 0
         end
     end
+    self.step_next = false
 end
 
 return debug_session
