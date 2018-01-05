@@ -161,7 +161,7 @@ function interface:create_main_gui()
         name = 'controllinator-main-flow',
         direction = 'vertical'
     })
-    root.style.max_on_row = 1
+    -- root.style.max_on_row = 1 -- TODO
 
     -- Contraption row
     do
@@ -212,7 +212,7 @@ function interface:create_main_gui()
         root.add({
             type = 'label',
             name = 'controllinator-main-debug-heading',
-            style = 'bold_label_style',
+            style = 'bold_label',
             caption = 'Debug controls'
         })
         local flow = root.add({
@@ -220,7 +220,7 @@ function interface:create_main_gui()
             name = 'controllinator-main-debug-flow',
             direction = 'horizontal'
         })
-        flow.style.resize_row_to_width = true
+        -- flow.style.resize_row_to_width = true -- TODO
 
         main.debug_toggle = flow.add({
             type = 'button',
@@ -276,12 +276,13 @@ function interface:create_new_gui()
         name = 'controllinator-new-contrap-flow',
         direction = 'vertical'
     })
-    root.style.max_on_row = 1
+    -- root.style.max_on_row = 1 -- TODO
 
     new_contrap_ui.name = root.add({
         type = 'textfield',
         name = 'controllinator-new-contrap-name'
     })
+    new_contrap_ui.name.focus()
 
     new_contrap_ui.create_button = root.add({
         type = 'button',
@@ -627,12 +628,12 @@ function interface:update_gui()
         if debug_session or self.is_editing then
             main.contraption_dropdown.enabled, main.contraption_dropdown.style = false,
                 self.is_editing
-                    and 'controllinator_editing_dropdown_style'
-                    or 'controllinator_debugging_dropdown_style'
+                    and 'controllinator_editing_dropdown'
+                    or 'controllinator_debugging_dropdown'
             main.new_contraption.enabled = false
             main.delete_contraption.enabled = false
         else
-            main.contraption_dropdown.enabled, main.contraption_dropdown.style = true, 'dropdown_style'
+            main.contraption_dropdown.enabled, main.contraption_dropdown.style = true, 'dropdown'
             main.new_contraption.enabled = true
             main.delete_contraption.enabled = true
                 and self.active_contraption and self.active_contraption.contraption_type ~= 'all'

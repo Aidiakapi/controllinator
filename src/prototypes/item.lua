@@ -6,6 +6,7 @@ data:extend({
 		order = 'a',
 		flags = { 'goes-to-main-inventory', 'hidden' },
 		icon = '__controllinator__/graphics/item/combinator-select-tool.png',
+		icon_size = 32,
 		selection_color = { r = 0, g = 1, b = 0 },
 		alt_selection_color = { r = 1, g = 0, b = 0 },
 		selection_mode = { 'buildable-type', 'matches-force' },
