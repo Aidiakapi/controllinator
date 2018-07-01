@@ -107,7 +107,7 @@ function interface:new_debug_session()
 end
 
 function interface:update_top_gui()
-    local should_show = settings.get_player_settings(self.player).controllinator_show_icon.value
+    local should_show = settings.get_player_settings(self.player)['controllinator-show-icon'].value
     local is_shown = not not self.buttons.main_toggle
     log(('should: %s  is: %s'):format(should_show, is_shown))
     if should_show == is_shown then return end

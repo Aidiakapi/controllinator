@@ -199,22 +199,22 @@ do
     script.on_event(defines.events.script_raised_destroy, on_entity_built)
 end
 
-script.on_event('controllinator_debug_toggle', function (event)
+script.on_event('controllinator-debug-toggle', function (event)
     global.interfaces[event.player_index]:on_gui_debug_toggle()
 end)
-script.on_event('controllinator_debug_pause', function (event)
+script.on_event('controllinator-debug-pause', function (event)
     global.interfaces[event.player_index]:on_gui_debug_pause()
 end)
-script.on_event('controllinator_debug_step', function (event)
+script.on_event('controllinator-debug-step', function (event)
     global.interfaces[event.player_index]:on_gui_debug_step()
 end)
-script.on_event('controllinator_toggle_gui', function (event)
+script.on_event('controllinator-toggle-gui', function (event)
     global.interfaces[event.player_index]:toggle_main_gui()
 end)
-script.on_event('controllinator_toggle_edit', function (event)
+script.on_event('controllinator-toggle-edit', function (event)
     global.interfaces[event.player_index]:toggle_edit()
 end)
-script.on_event('controllinator_toggle_new', function (event)
+script.on_event('controllinator-toggle-new', function (event)
     global.interfaces[event.player_index]:toggle_new_gui()
 end)
 
@@ -229,7 +229,7 @@ script.on_event(defines.events.on_player_left_game, function (event)
 end)
 
 script.on_event(defines.events.on_runtime_mod_setting_changed, function (event)
-    if event.setting ~= 'controllinator_show_icon' then
+    if event.setting ~= 'controllinator-show-icon' then
         return
     end
     global.interfaces[event.player_index]:update_top_gui()
