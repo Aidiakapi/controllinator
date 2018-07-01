@@ -110,7 +110,7 @@ script.on_event(defines.events.on_gui_selection_state_changed, function (event)
 end)
 
 script.on_event(defines.events.on_surface_created, function (event)
-    local surface = game.surfaces[event.surface_index + 1]
+    local surface = game.surfaces[event.surface_index]
     log('[controllinator] creating surface: ' .. surface.name)
     for force, contraption in iter_contraptions() do
         contraption:on_surface_created(surface)
@@ -118,7 +118,7 @@ script.on_event(defines.events.on_surface_created, function (event)
 end)
 
 script.on_event(defines.events.on_pre_surface_deleted, function (event)
-    local surface = game.surfaces[event.surface_index + 1]
+    local surface = game.surfaces[event.surface_index]
     log('[controllinator] destroying surface: ' .. surface.name)
     for force, contraption in iter_contraptions() do
         contraption:on_pre_surface_destroyed(surface)
