@@ -1,0 +1,28 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.3.1
+Date: 01. 07. 2018
+  Bugfixes:
+    - Fixed off by 1 crash when a mod/scenario/script creates new surfaces. Thanks to Boodals for reporting!
+    - Changed naming scheme of locale information and keybindings to match Factorio's standard.
+---------------------------------------------------------------------------------------------------
+Version: 0.3.0
+Date: 05. 01. 2018
+  Features:
+    - Added support for Factorio 0.16.
+    - Added compatibility with mods/scenarios that modify surfaces.
+    - Added resilience against mods which remove entities without firing an event.
+---------------------------------------------------------------------------------------------------
+Version: 0.2.0
+Date: 29. 10. 2017
+  Features:
+    - Added option to hide the icon in the top-left corner (UI can be opened through keyboard shortcut).
+---------------------------------------------------------------------------------------------------
+Version: 0.1.2
+Date: 29. 10. 2017
+  Features:
+    - Added compatibility with mods/scenarios that modify forces.
+---------------------------------------------------------------------------------------------------
+Version: 0.1.1
+Date: 20. 07. 2017
+  Features:
+    - Added the ability to have custom contraptions to select a specific section of combinators to debug.
