@@ -1,17 +1,27 @@
 local styles = data.raw['gui-style'].default
 
-local disabled_dropdown = table.deepcopy(styles.dropdown)
-disabled_dropdown.default_graphical_set = disabled_dropdown.clicked_graphical_set
+local function make_disabled_dropdown(name, font_color)
+    local dropdown_button = table.deepcopy(styles.button)
+        
+    dropdown_button.padding = 0
+    dropdown_button.horizontal_align = 'right'
+    dropdown_button.font = 'default-dropdown'
+    dropdown_button.left_click_sound = {}
 
-local disabled_dropdown = table.deepcopy(disabled_dropdown)
-disabled_dropdown.default_font_color = { r = 0.5, g = 0.5, b = 0.5 }
+    dropdown_button.default_font_color = table.deepcopy(font_color)
+    dropdown_button.default_graphical_set = table.deepcopy(dropdown_button.disabled_graphical_set)
+    dropdown_button.hovered_font_color = table.deepcopy(font_color)
+    dropdown_button.hovered_graphical_set = table.deepcopy(dropdown_button.disabled_graphical_set)
+    dropdown_button.disabled_font_color = table.deepcopy(font_color)
 
-local debugging_dropdown = table.deepcopy(disabled_dropdown)
-debugging_dropdown.default_font_color = { r = 0.5, g = 1, b = 0.5 }
+    styles[name .. '_button'] = dropdown_button
+    local dropdown = table.deepcopy(styles.dropdown)
+    dropdown.button_style = {
+        type = 'button_style',
+        parent = name .. '_button'
+    }
+    styles[name] = dropdown
+end
 
-local editing_dropdown = table.deepcopy(disabled_dropdown)
-editing_dropdown.default_font_color = { r = 1, g = 1, b = 0.5 }
-
-styles.controllinator_disabled_dropdown = disabled_dropdown
-styles.controllinator_debugging_dropdown = debugging_dropdown
-styles.controllinator_editing_dropdown = editing_dropdown
+make_disabled_dropdown('controllinator_debugging_dropdown', { r = 0.5, g = 1, b = 0.5 })
+make_disabled_dropdown('controllinator_editing_dropdown', { r = 1, g = 1, b = 0.5 })

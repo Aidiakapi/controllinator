@@ -6,7 +6,6 @@ destroyed when a player is pruned.
 
 ]]
 
-local wrap_style = require('style_wrapper')
 local contraption_functions = require('contraption')
 local debug_session_functions = require('debug_session')
 local make_metatable = require('object_metatable').make_metatable
@@ -122,11 +121,9 @@ function interface:create_top_gui()
     local toggle_button = self.player.gui.top.add({
         type = 'sprite-button',
         name = 'controllinator-toggle',
-        sprite = 'entity/constant-combinator'
+        sprite = 'entity/constant-combinator',
+        style = 'mod_gui_button'
     })
-
-    local style = wrap_style(toggle_button.style)
-    style.width, style.height, style.padding = 30, 30, 0
 
     self.buttons.main_toggle = toggle_button
 end
@@ -161,7 +158,6 @@ function interface:create_main_gui()
         name = 'controllinator-main-flow',
         direction = 'vertical'
     })
-    -- root.style.max_on_row = 1 -- TODO
 
     -- Contraption row
     do
@@ -176,7 +172,6 @@ function interface:create_main_gui()
             caption = 'Contraption'
         })
 
-        label.style.right_padding = 10
         main.contraption_dropdown = flow.add({
             type = 'drop-down',
             name = 'controllinator-main-contraption'
@@ -197,11 +192,6 @@ function interface:create_main_gui()
             name = 'controllinator-main-contraptions-delete',
             caption = 'Delete'
         })
-        for _, button in pairs({ new_button, edit_button, delete_button }) do
-            local style = wrap_style(button.style)
-            style.font = 'default'
-            style.padding = { 0, 3 }
-        end
         main.new_contraption = new_button
         main.edit_contraption = edit_button
         main.delete_contraption = delete_button
@@ -220,7 +210,6 @@ function interface:create_main_gui()
             name = 'controllinator-main-debug-flow',
             direction = 'horizontal'
         })
-        -- flow.style.resize_row_to_width = true -- TODO
 
         main.debug_toggle = flow.add({
             type = 'button',
@@ -276,7 +265,6 @@ function interface:create_new_gui()
         name = 'controllinator-new-contrap-flow',
         direction = 'vertical'
     })
-    -- root.style.max_on_row = 1 -- TODO
 
     new_contrap_ui.name = root.add({
         type = 'textfield',
@@ -439,14 +427,10 @@ function interface:on_player_cursor_stack_changed()
         return
     end
 
-    local remove_stack = { name = 'combinator-select-tool', count = 100000 }
-    for _, inventory in ipairs({
-        self.player.get_inventory(defines.inventory.player_main) or
-        self.player.get_inventory(defines.inventory.god_main),
-        self.player.get_quickbar()
-    }) do
-        inventory.remove(remove_stack)
-    end
+    local inventory = self.player.get_inventory(defines.inventory.player_main)
+        or self.player.get_inventory(defines.inventory.god_main)
+    inventory.remove({ name = 'combinator-select-tool', count = 100000 })
+
     self.is_editing = false
     self:update_gui()
 end
