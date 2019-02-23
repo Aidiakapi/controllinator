@@ -95,7 +95,7 @@ script.on_event(defines.events.on_player_created, function (event)
     global.interfaces[player.index]:new(player)
 end)
 
-script.on_event(defines.events.on_player_removed, function (event)
+script.on_event(defines.events.on_pre_player_removed, function (event)
     local player = game.players[event.player_index]
     global.interfaces[player.index]:destroy()
     global.interfaces[player.index] = nil
