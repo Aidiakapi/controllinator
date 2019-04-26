@@ -85,8 +85,29 @@ function interface:destroy_debug_session()
     self:update_gui()
 end
 
-function interface:new_debug_session()
+function interface:check_entities()
     local contraption = self.active_contraption
+    local remove_count = contraption:check_entities()
+    if remove_count ~= 0 then
+        self:print(('%d entities that were part of a contraption were uncleanly removed via an external script/mod/migration'):format(remove_count))
+    end
+
+    remove_count = 0
+    for unit_number, entity in pairs(global.controlled_entities) do
+        if not entity or not entity.valid then
+            global.controlled_entities[unit_number] = nil
+            remove_count = remove_count + 1
+        end
+    end
+    if remove_count ~= 0 then
+        self:print(('%d entities that were being script-controlled were uncleanly removed via an external script/mod/migration'):format(remove_count))
+    end
+end
+
+function interface:new_debug_session()
+    self:check_entities()
+    local contraption = self.active_contraption
+    
     local overlap = false
     for _, entity in ipairs(contraption.entities) do
         if global.controlled_entities[entity.unit_number] then
@@ -99,7 +120,7 @@ function interface:new_debug_session()
         self:print('Cannot start debug session, because some entities are already being debugged (ask some other player?)')
         return
     end
-    debug_session = make_metatable({}, debug_session_functions)
+    local debug_session = make_metatable({}, debug_session_functions)
     global.debug_sessions[#global.debug_sessions + 1] = debug_session
     debug_session:new(self.player, contraption)
     self:update_gui()
@@ -547,6 +568,7 @@ end
 
 function interface:on_player_selected_area(alt, item, entities)
     if item ~= 'combinator-select-tool' then return end
+    self:check_entities()
 
     local contraption = self.active_contraption
     local already_contained_entities = {}

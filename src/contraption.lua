@@ -48,6 +48,12 @@ local function is_combinator(entity)
 end
 
 local function add_entity_to_contraption(self, entity)
+    -- Prevent duplicate entities
+    for _, existing_entity in ipairs(self.entities) do
+        if existing_entity == entity then
+            return
+        end
+    end
     self.entities[#self.entities + 1] = entity
 
     -- Propagate information to active debug_session
@@ -112,11 +118,12 @@ function contraption:rescan_all_chunks()
 end
 
 function contraption:check_entities()
-    local old_entities, new_entities = self.entities, {}
+    local old_entities, new_entities, new_entities_set = self.entities, {}, {}
     self.entities = new_entities
     for _, entity in ipairs(old_entities) do
-        if entity and entity.valid then
+        if entity and entity.valid and not new_entities_set[entity.unit_number] then
             new_entities[#new_entities + 1] = entity
+            new_entities_set[entity.unit_number] = true
         end
     end
     return #old_entities - #new_entities
