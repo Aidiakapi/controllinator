@@ -447,8 +447,7 @@ function interface:on_player_cursor_stack_changed()
         return
     end
 
-    local inventory = self.player.get_inventory(defines.inventory.player_main)
-        or self.player.get_inventory(defines.inventory.god_main)
+    local inventory = self.player.get_main_inventory()
     inventory.remove({ name = 'combinator-select-tool', count = 100000 })
 
     self.is_editing = false
