@@ -36,7 +36,7 @@ function interface:destroy()
         self:destroy_top_gui()
         self:destroy_main_gui()
     end
-    
+
     self:destroy_debug_session()
 
     for k, v in pairs(self) do
@@ -94,7 +94,7 @@ function interface:check_entities()
 
     remove_count = 0
     for unit_number, entity in pairs(global.controlled_entities) do
-        if not entity or not entity.valid then
+        if type(entity) == 'table' and not entity.valid then
             global.controlled_entities[unit_number] = nil
             remove_count = remove_count + 1
         end
@@ -107,7 +107,7 @@ end
 function interface:new_debug_session()
     self:check_entities()
     local contraption = self.active_contraption
-    
+
     local overlap = false
     for _, entity in ipairs(contraption.entities) do
         if global.controlled_entities[entity.unit_number] then
@@ -186,7 +186,7 @@ function interface:create_main_gui()
             name = 'controllinator-main-contraption-flow',
             direction = 'horizontal'
         })
-        local label = flow.add({
+        local _label = flow.add({
             type = 'label',
             name = 'controllinator-main-label-contraption',
             caption = 'Contraption'
@@ -314,7 +314,7 @@ end
 
 function interface:toggle_new_gui()
     local debug_session = self:get_debug_session()
-    
+
     if debug_session then
         self:print('cannot create a new contraption while debugging')
         return
@@ -328,13 +328,13 @@ function interface:toggle_new_gui()
     else self:create_new_gui() end
 end
 
-function interface:on_gui_click(element, button, alt, control, shift)
+function interface:on_gui_click(element, _button, _alt, _control, _shift)
     if element == self.buttons.main_toggle then
         self:toggle_main_gui()
     end
     local main = self.main_interface
     if not self.main_interface then
-        return 
+        return
     end
 
     if element == main.debug_toggle then
@@ -409,7 +409,7 @@ function interface:on_gui_debug_step()
         debug_session:pause()
         self:update_gui()
     end
-    
+
     debug_session:step()
 end
 
@@ -442,7 +442,7 @@ end
 
 function interface:on_player_cursor_stack_changed()
     if not self.is_editing then return end
-    
+
     if self.player.cursor_stack.valid_for_read and self.player.cursor_stack.name == 'combinator-select-tool' then
         return
     end
@@ -503,7 +503,7 @@ function interface:on_gui_delete_contraption()
     end
 
     local contraptions = get_contraptions(self)
-    
+
     local index
     for i, contraption in ipairs(contraptions) do
         if contraption == active_contraption then

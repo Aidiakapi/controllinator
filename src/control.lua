@@ -249,3 +249,7 @@ commands.add_command('controllinator_update_gui', 'Debug utility. Forces the gui
         global.interfaces[player.index]:update_gui()
     end
 end)
+
+commands.add_command('controllinator_dump', 'Dumps the global state of the mod to the log file.', function ()
+    log(serpent.block(global))
+end)
