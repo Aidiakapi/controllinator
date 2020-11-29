@@ -472,7 +472,7 @@ function interface:on_gui_edit_contraption()
         return
     end
 
-    if not self.player.clean_cursor() then
+    if not self.player.clear_cursor() then
         self:print('player cursor must be empty to edit a contraption')
         return
     end
