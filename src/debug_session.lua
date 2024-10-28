@@ -25,17 +25,17 @@ function debug_session:new(player, contraption)
     self.paused, self.step_next = true, false
 
     for _, entity in ipairs(contraption.entities) do
-        if global.controlled_entities[entity.unit_number] then
+        if storage.controlled_entities[entity.unit_number] then
             error('cannot start a debug session because entities overlap')
         else
-            global.controlled_entities[entity.unit_number] = true
+            storage.controlled_entities[entity.unit_number] = true
         end
     end
 end
 
 function debug_session:destroy()
     for _, entity in ipairs(self.contraption.entities) do
-        global.controlled_entities[entity.unit_number] = nil
+        storage.controlled_entities[entity.unit_number] = nil
     end
 
     for k, v in pairs(self) do
@@ -44,14 +44,14 @@ function debug_session:destroy()
 end
 
 function debug_session:on_entity_added(entity)
-    assert(not global.controlled_entities[entity.unit_number], 'cannot add an entity to a contraption with \
+    assert(not storage.controlled_entities[entity.unit_number], 'cannot add an entity to a contraption with \
         an active debug_session when the entity is already controlled by another debug_session')
-    global.controlled_entities[entity.unit_number] = true
+    storage.controlled_entities[entity.unit_number] = true
 end
 
 function debug_session:on_entity_removed(entity)
-    assert(global.controlled_entities[entity.unit_number], 'cannot remove an entity that is not controlled')
-    global.controlled_entities[entity.unit_number] = nil
+    assert(storage.controlled_entities[entity.unit_number], 'cannot remove an entity that is not controlled')
+    storage.controlled_entities[entity.unit_number] = nil
 end
 
 function debug_session:is_paused()

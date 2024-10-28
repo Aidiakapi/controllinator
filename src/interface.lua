@@ -13,11 +13,11 @@ local make_metatable = require('object_metatable').make_metatable
 local interface = {}
 
 local function get_contraptions(self)
-    local contraptions =  global.contraptions[self.player.force.name]
+    local contraptions =  storage.contraptions[self.player.force.name]
     if not contraptions then
-        log('[controllinator] warning: global.contraptions was not created for force ' .. self.player.force.name)
+        log('[controllinator] warning: storage.contraptions was not created for force ' .. self.player.force.name)
         contraptions = {}
-        global.contraptions[self.player.force.name] = contraptions
+        storage.contraptions[self.player.force.name] = contraptions
     end
     return contraptions
 end
@@ -63,7 +63,7 @@ end
 
 function interface:get_debug_session()
     local player = self.player
-    for _, debug_session in ipairs(global.debug_sessions) do
+    for _, debug_session in ipairs(storage.debug_sessions) do
         if debug_session.player == player then
             return debug_session
         end
@@ -73,15 +73,15 @@ end
 function interface:destroy_debug_session()
     local index
     local player = self.player
-    for i, debug_session in ipairs(global.debug_sessions) do
+    for i, debug_session in ipairs(storage.debug_sessions) do
         if debug_session.player == player then
             index = i
             break
         end
     end
     if index == nil then return end
-    global.debug_sessions[index]:destroy()
-    table.remove(global.debug_sessions, index)
+    storage.debug_sessions[index]:destroy()
+    table.remove(storage.debug_sessions, index)
     self:update_gui()
 end
 
@@ -93,9 +93,9 @@ function interface:check_entities()
     end
 
     remove_count = 0
-    for unit_number, entity in pairs(global.controlled_entities) do
-        if type(entity) == 'table' and not entity.valid then
-            global.controlled_entities[unit_number] = nil
+    for unit_number, entity in pairs(storage.controlled_entities) do
+        if type(entity) == 'userdata' and not entity.valid then
+            storage.controlled_entities[unit_number] = nil
             remove_count = remove_count + 1
         end
     end
@@ -110,7 +110,7 @@ function interface:new_debug_session()
 
     local overlap = false
     for _, entity in ipairs(contraption.entities) do
-        if global.controlled_entities[entity.unit_number] then
+        if storage.controlled_entities[entity.unit_number] then
             overlap = true
             break
         end
@@ -121,7 +121,7 @@ function interface:new_debug_session()
         return
     end
     local debug_session = make_metatable({}, debug_session_functions)
-    global.debug_sessions[#global.debug_sessions + 1] = debug_session
+    storage.debug_sessions[#storage.debug_sessions + 1] = debug_session
     debug_session:new(self.player, contraption)
     self:update_gui()
 end
@@ -486,7 +486,7 @@ end
 function interface:on_gui_delete_contraption()
     local active_contraption = self.active_contraption
     assert(active_contraption.type ~= 'all', [[cannot delete the contraption of type 'all']])
-    for _, debug_session in ipairs(global.debug_sessions) do
+    for _, debug_session in ipairs(storage.debug_sessions) do
         if debug_session.contraption == active_contraption then
             assert(debug_session.player ~= self.player, 'cannot delete contraption that is being debugged')
             self:print(('cannot delete contraption %s because it is being debugged by player %q'):format(active_contraption.name, debug_session.player.name))
@@ -494,7 +494,7 @@ function interface:on_gui_delete_contraption()
         end
     end
 
-    for _, interface in pairs(global.interfaces) do
+    for _, interface in pairs(storage.interfaces) do
         if active_contraption == interface.active_contraption and interface.is_editing then
             assert(interface ~= self, 'cannot delete a contraption that is being edited')
             self:print(('cannot delete contraption %s because it is being edited by player %q'):format(active_contraption.name, interface.player.name))
@@ -514,7 +514,7 @@ function interface:on_gui_delete_contraption()
 
     table.remove(contraptions, index)
 
-    for _, interface in pairs(global.interfaces) do
+    for _, interface in pairs(storage.interfaces) do
         interface:on_contraption_list_changed()
     end
 end
@@ -558,7 +558,7 @@ function interface:on_gui_create_contraption()
     self.active_contraption = contraption
     self:destroy_new_gui()
 
-    for _, interface in pairs(global.interfaces) do
+    for _, interface in pairs(storage.interfaces) do
         interface:on_contraption_list_changed()
     end
 
@@ -581,7 +581,7 @@ function interface:on_player_selected_area(alt, item, entities)
         if contained and alt then
             contraption:try_remove_entity(entity)
         elseif not contained and not alt then
-            if global.controlled_entities[entity.unit_number] then
+            if storage.controlled_entities[entity.unit_number] then
                 not_added_count = not_added_count + 1
             else
                 contraption:try_add_entity(entity)

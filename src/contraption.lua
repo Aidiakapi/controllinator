@@ -44,7 +44,19 @@ local param_assert, type_check = require('param_assert'), require('type_check')
 local contraption = {}
 
 local function is_combinator(entity)
-    return entity and entity.valid and (entity.name == 'arithmetic-combinator' or entity.name == 'decider-combinator')
+    if not entity then return false end
+    if not entity.valid then return false end
+
+    if entity.type == 'arithmetic-combinator' then return true end
+    if entity.type == 'decider-combinator' then return true end
+    if entity.type == 'selector-combinator' then return true end
+
+    -- assembling machines (including chemical plants, etc.) are now wireable
+    -- they can, for instance, be used to get the ingredients for a recipe
+    --if entity.type == 'assembling-machine' then return true end
+    -- alas, debug_session.lua sets power to 0 to pause, but assemblers continue to process signals with no power
+
+    return false
 end
 
 local function add_entity_to_contraption(self, entity)
@@ -57,7 +69,7 @@ local function add_entity_to_contraption(self, entity)
     self.entities[#self.entities + 1] = entity
 
     -- Propagate information to active debug_session
-    for _, debug_session in ipairs(global.debug_sessions) do
+    for _, debug_session in ipairs(storage.debug_sessions) do
         if debug_session.contraption == self then
             debug_session:on_entity_added(entity)
         end
@@ -78,7 +90,7 @@ local function remove_entity_from_contraption(self, removed_entity)
     if not index then return end
 
     -- Propagate information to active debug_session
-    for _, debug_session in ipairs(global.debug_sessions) do
+    for _, debug_session in ipairs(storage.debug_sessions) do
         if debug_session.contraption == self then
             debug_session:on_entity_removed(removed_entity)
         end
@@ -90,7 +102,7 @@ end
 
 function contraption:new(force, contraption_type, name, opt_region)
     -- TODO: Support the other types of contraptions
-    type_check('table', force)
+    type_check('userdata', force)
     type_check('string', name)
     param_assert(contraption_type == 'all' or contraption_type == 'custom', [[contraption_type must be 'all' or 'custom']])
 
@@ -130,7 +142,7 @@ function contraption:check_entities()
 end
 
 function contraption:scan_chunk(surface, chunk_x, chunk_y)
-    type_check('table', surface)
+    type_check('userdata', surface)
     type_check('number', chunk_x)
     type_check('number', chunk_y)
     local left_top = { x = chunk_x * 32, y = chunk_y * 32 }
@@ -166,7 +178,7 @@ function contraption:on_tick()
 end
 
 function contraption:on_surface_created(surface)
-    type_check('table', surface)
+    type_check('userdata', surface)
     if self.contraption_type == 'all' then
         -- Add all chunks to the list of pending chunks
         local xs, ys, ss = self.pending_chunks.x, self.pending_chunks.y, self.pending_chunks.surface
@@ -209,7 +221,7 @@ function contraption:try_remove_entity(entity)
 end
 
 function contraption:on_entity_created(entity, opt_player)
-    type_check('table', entity)
+    type_check('userdata', entity)
     param_assert(entity.force == self.force, 'entity must belong to the same force as the contraption')
 
     if not is_combinator(entity) then return end
@@ -220,8 +232,8 @@ function contraption:on_entity_created(entity, opt_player)
         -- Add it automatically to the contraption if the player
         -- placing it is also currently debugging this specific
         -- custom contraption.
-        if opt_player and global.interfaces[opt_player.index] then
-            local debug_session = global.interfaces[opt_player.index]:get_debug_session()
+        if opt_player and storage.interfaces[opt_player.index] then
+            local debug_session = storage.interfaces[opt_player.index]:get_debug_session()
             if debug_session ~= nil and debug_session.contraption == self then
                 add_entity_to_contraption(self, entity)
             end
@@ -230,7 +242,7 @@ function contraption:on_entity_created(entity, opt_player)
 end
 
 function contraption:on_entity_destroyed(entity, opt_player)
-    type_check('table', entity)
+    type_check('userdata', entity)
     param_assert(entity.force == self.force, 'entity must belong to the same force as the contraption')
 
     if not is_combinator(entity) then return end
